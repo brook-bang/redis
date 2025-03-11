@@ -5,3 +5,9 @@ use bytes::Bytes;
 use std::collections::{BTreeSet, HashMap};
 use std::sync::{Arc, Mutex};
 use tracing::debug;
+
+#[derive(Debug)]
+struct Shared {
+    state: Mutex<State>
+}
+
