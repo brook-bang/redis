@@ -16,7 +16,7 @@ pub use ping::Ping;
 mod unknown;
 pub use unknown::Unknown;
 
-use crate::{Connection, Db, Frame, Parse, ParseError, Shutdown, cmd, shutdown};
+use crate::{Connection, Db, Frame, Parse, ParseError, Shutdown};
 
 #[derive(Debug)]
 pub enum Command {
@@ -35,11 +35,11 @@ impl Command {
 
         let command_name = parse.next_string()?.to_lowercase();
         let command = match &command_name[..] {
-            "get" => Command::Get(Get::parse_frame(&mut parse)?),
+            "get" => Command::Get(Get::parse_frames(&mut parse)?),
             "publish" => Command::Publish(Publish::parse_frames(&mut parse)?),
             "set" => Command::Set(Set::parse_frames(&mut parse)?),
             "subscribe" => Command::Subscribe(Subscribe::parse_frames(&mut parse)?),
-            "unsubscribe" => Command::Unsubscribe(Unsubscribe::p),
+            "unsubscribe" => Command::Unsubscribe(Unsubscribe::parse_frames(&mut parse)?),
             "ping" => Command::Ping(Ping::parse_frames(&mut parse)?),
             _ => {
                 return Ok(Command::Unknown(Unknown::new(command_name)));
@@ -65,7 +65,7 @@ impl Command {
             Subscribe(cmd) => cmd.apply(db, dst, shutdown).await,
             Ping(cmd) => cmd.apply(dst).await,
             Unknown(cmd) => cmd.apply(dst).await,
-            Unsubscribe(_) => Err("'Unsubscribe' is unsupported in this context".into()),
+            Unsubscribe(_) => Err("`Unsubscribe` is unsupported in this context".into()),
         }
     }
 

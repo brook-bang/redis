@@ -47,7 +47,7 @@ impl Set {
                 let ms = parse.next_int()?;
                 expire = Some(Duration::from_millis(ms));
             }
-            Ok(_) => return Err("currently 'SET' only supports the expiration option".into()),
+            Ok(_) => return Err("currently `SET` only supports the expiration option".into()),
             Err(EndOfStream) => {}
             Err(err) => return Err(err.into()),
         }
