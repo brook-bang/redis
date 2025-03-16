@@ -74,7 +74,7 @@ impl Frame {
                 }
                 Ok(())
             }
-            actual => Err(format!("protocol error; invalid frame type bypte '{}'", actual).into()),
+            actual => Err(format!("protocol error; invalid frame type byte `{}`", actual).into()),
         }
     }
 
@@ -83,7 +83,7 @@ impl Frame {
             b'+' => {
                 let line = get_line(src)?.to_vec();
                 let string = String::from_utf8(line)?;
-                Ok(Frame::Error(string))
+                Ok(Frame::Simple(string))
             }
             b'-' => {
                 let line = get_line(src)?.to_vec();
@@ -127,7 +127,18 @@ impl Frame {
     pub(crate) fn to_error(&self) -> crate::Error {
         format!("unexpected frame: {}", self).into()
     }
-} 
+}
+
+impl PartialEq<&str> for Frame {
+    fn eq(&self, other: &&str) -> bool {
+        match self {
+            Frame::Simple(s) => s.eq(other),
+            Frame::Bulk(s) => s.eq(other),
+            _ => false,
+        }
+    }
+    
+}
 
 impl fmt::Display for Frame {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -135,17 +146,17 @@ impl fmt::Display for Frame {
 
         match self {
             Frame::Simple(response) => response.fmt(fmt),
-            Frame::Error(msg) => write!(fmt,"error: {}",msg),
+            Frame::Error(msg) => write!(fmt, "error: {}", msg),
             Frame::Integer(num) => num.fmt(fmt),
             Frame::Bulk(msg) => match str::from_utf8(msg) {
                 Ok(string) => string.fmt(fmt),
-                Err(_) => write!(fmt,"{:?}",msg),
+                Err(_) => write!(fmt, "{:?}", msg),
             },
             Frame::Null => "(nil)".fmt(fmt),
             Frame::Array(parts) => {
-                for (i,part) in parts.iter().enumerate() {
-                    if i> 0 {
-                        write!(fmt,"")?;
+                for (i, part) in parts.iter().enumerate() {
+                    if i > 0 {
+                        write!(fmt, "")?;
                     }
                     part.fmt(fmt)?;
                 }
@@ -161,7 +172,6 @@ fn peek_u8(src: &mut Cursor<&[u8]>) -> Result<u8, Error> {
     }
     Ok(src.chunk()[0])
 }
-
 
 fn get_u8(src: &mut Cursor<&[u8]>) -> Result<u8, Error> {
     if !src.has_remaining() {
@@ -179,7 +189,7 @@ fn skip(src: &mut Cursor<&[u8]>, n: usize) -> Result<(), Error> {
 
 fn get_decimal(src: &mut Cursor<&[u8]>) -> Result<u64, Error> {
     use atoi::atoi;
-    
+
     let line = get_line(src)?;
     atoi::<u64>(line).ok_or_else(|| "protocol error; invalid frame format".into())
 }
@@ -195,7 +205,6 @@ fn get_line<'a>(src: &mut Cursor<&'a [u8]>) -> Result<&'a [u8], Error> {
     }
     Err(Error::Incomplete)
 }
-
 
 impl From<String> for Error {
     fn from(src: String) -> Self {
@@ -231,4 +240,3 @@ impl fmt::Display for Error {
         }
     }
 }
-
