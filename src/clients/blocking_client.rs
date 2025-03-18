@@ -30,11 +30,11 @@ impl BlockingClient {
         Ok(BlockingClient { inner, rt })
     }
 
-    pub fn get(&mut self,key: &str) -> crate::Result<Option<Bytes>> {
+    pub fn get(&mut self, key: &str) -> crate::Result<Option<Bytes>> {
         self.rt.block_on(self.inner.get(key))
     }
 
-    pub fn set(&mut self,key: &str,value: Bytes) -> crate::Result<()> {
+    pub fn set(&mut self, key: &str, value: Bytes) -> crate::Result<()> {
         self.rt.block_on(self.inner.set(key, value))
     }
 
@@ -44,24 +44,24 @@ impl BlockingClient {
         value: Bytes,
         expiration: Duration,
     ) -> crate::Result<()> {
-        self.rt.block_on(self.inner.set_expires(key, value, expiration))
+        self.rt
+            .block_on(self.inner.set_expires(key, value, expiration))
     }
 
-    pub fn publish(&mut self,channel: &str,message: Bytes) -> crate::Result<u64> {
+    pub fn publish(&mut self, channel: &str, message: Bytes) -> crate::Result<u64> {
         self.rt.block_on(self.inner.publish(channel, message))
     }
 
-    pub fn subscribe(self,channels: Vec<String>) -> crate::Result<BlockingSubscriber> {
+    pub fn subscribe(self, channels: Vec<String>) -> crate::Result<BlockingSubscriber> {
         let subscriber = self.rt.block_on(self.inner.subscribe(channels))?;
         Ok(BlockingSubscriber {
-            inner:subscriber,
+            inner: subscriber,
             rt: self.rt,
         })
     }
 }
 
 impl BlockingSubscriber {
-
     pub fn get_subscribed(&self) -> &[String] {
         self.inner.get_subscribed()
     }
@@ -77,11 +77,11 @@ impl BlockingSubscriber {
         }
     }
 
-    pub fn subscribe(&mut self,channels: &[String]) -> crate::Result<()> {
+    pub fn subscribe(&mut self, channels: &[String]) -> crate::Result<()> {
         self.rt.block_on(self.inner.subscribe(channels))
     }
 
-    pub fn unsubscribe(&mut self,channels: &[String]) -> crate::Result<()> {
+    pub fn unsubscribe(&mut self, channels: &[String]) -> crate::Result<()> {
         self.rt.block_on(self.inner.unsubscribe(channels))
     }
 }

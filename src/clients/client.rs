@@ -75,7 +75,7 @@ impl Client {
         debug!(request = ?frame);
         self.connection.write_frame(&frame).await?;
         match self.read_response().await? {
-            Frame::Simple(response) if response == "Ok" => Ok(()),
+            Frame::Simple(response) if response == "OK" => Ok(()),
             frame => Err(frame.to_error()),
         }
     }

@@ -156,7 +156,7 @@ impl fmt::Display for Frame {
             Frame::Array(parts) => {
                 for (i, part) in parts.iter().enumerate() {
                     if i > 0 {
-                        write!(fmt, "")?;
+                        write!(fmt, " ")?;
                     }
                     part.fmt(fmt)?;
                 }

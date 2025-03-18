@@ -170,7 +170,7 @@ impl Shared {
 }
 
 impl State {
-    pub fn next_expiration(&self) -> Option<Instant> {
+    fn next_expiration(&self) -> Option<Instant> {
         self.expirations
             .iter()
             .next()
